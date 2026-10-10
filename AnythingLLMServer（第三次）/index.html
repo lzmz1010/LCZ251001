@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>AnythingLLM 文档上传嵌入</title>
+<style>
+  body{font-family:"Microsoft YaHei",system-ui,sans-serif;max-width:640px;margin:40px auto;padding:0 16px;color:#1f2328}
+  h1{font-size:20px}
+  .field{margin:14px 0}
+  label{display:block;margin-bottom:6px;font-weight:600;font-size:14px}
+  select,input[type=file]{width:100%;padding:8px;box-sizing:border-box;border:1px solid #d0d7de;border-radius:6px}
+  button{margin-top:8px;padding:9px 20px;font-size:14px;border:none;border-radius:6px;background:#0969da;color:#fff;cursor:pointer}
+  button:disabled{background:#8c8c8c;cursor:not-allowed}
+  #log{margin-top:18px;font-size:13px;line-height:1.7;white-space:pre-wrap}
+  .ok{color:#1a7f37}.err{color:#cf222e}.info{color:#57606a}
+</style>
+</head>
+<body>
+  <h1>上传文档到 AnythingLLM 工作区并完成嵌入</h1>
+
+  <div class="field">
+    <label>目标工作区</label>
+    <select id="workspace"></select>
+  </div>
+
+  <div class="field">
+    <label>选择文档（单个文件）</label>
+    <input type="file" id="file">
+  </div>
+
+  <button id="uploadBtn">上传并嵌入</button>
+
+  <div id="log"></div>
+
+<script>
+const LOG = document.getElementById('log');
+const btn = document.getElementById('uploadBtn');
+
+function log(msg, cls='info'){ LOG.innerHTML += `<div class="${cls}">${msg}</div>`; }
+
+async function api(path, options){
+  const res = await fetch(path, options);
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+// 1. 加载工作区
+(async function(){
+  try{
+    const j = await api('/api/v1/workspaces');
+    const sel = document.getElementById('workspace');
+    if(!j.workspaces || j.workspaces.length===0){ log('未找到任何工作区', 'err'); return; }
+    j.workspaces.forEach(w=>{
+      const o=document.createElement('option');
+      o.value=w.slug; o.textContent=`${w.name} (${w.slug.slice(0,8)}…)`;
+      sel.appendChild(o);
+    });
+    log('✓ 已加载 ' + j.workspaces.length + ' 个工作区');
+  }catch(e){ log('加载工作区失败: '+e.message, 'err'); }
+})();
+
+btn.addEventListener('click', async ()=>{
+  const fileEl = document.getElementById('file');
+  const slug = document.getElementById('workspace').value;
+  if(!fileEl.files.length){ log('请先选择文件', 'err'); return; }
+  if(!slug){ log('请先选择工作区', 'err'); return; }
+
+  btn.disabled = true;
+  LOG.innerHTML = '';
+
+  try{
+    // 2. 上传
+    log('① 上传文件…');
+    const fd = new FormData();
+    fd.append('file', fileEl.files[0]);
+    fd.append('addToWorkspaces', slug);
+    const up = await api('/api/v1/document/upload', {method:'POST', body:fd});
+    if(!up.success || !up.documents || !up.documents.length)
+      throw new Error(JSON.stringify(up));
+    const doc = up.documents[0];
+    log(`✓ 上传成功，文档标识: ${doc.location}`, 'ok');
+
+    // 3. 触发向量化嵌入
+    log('② 触发向量化嵌入…');
+    await api(`/api/v1/workspace/${slug}/update-embeddings`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({adds:[doc.location], deletes:[]})
+    });
+    log('✓ 嵌入请求已提交，等待向量化完成…', 'ok');
+
+    // 4. 轮询工作区，确认文档已显示
+    const target = doc.filename || doc.location;
+    for(let i=0; i<20; i++){
+      await new Promise(r=>setTimeout(r,2000));
+      const j = await api(`/api/v1/workspace/${slug}`);
+      const ws = Array.isArray(j.workspace) ? j.workspace[0] : j.workspace;
+      const docs = ws && ws.documents ? ws.documents : [];
+      if(docs.some(d => (d.filename||'').includes(target) || (d.docpath||'').includes(target))){
+        log(`✅ 嵌入完成！「${fileEl.files[0].name}」已显示在工作区（共 ${docs.length} 份文档）`, 'ok');
+        return;
+      }
+    }
+    log('⚠ 嵌入仍在后台处理，可稍后在工作区文档列表查看。', 'info');
+  }catch(e){
+    log('❌ 失败: ' + e.message, 'err');
+  }finally{
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
