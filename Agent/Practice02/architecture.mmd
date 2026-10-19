@@ -1,0 +1,54 @@
+graph TD
+    %% Entry & Config
+    Start([Program Start]) --> Config[Read config.ini]
+    Config --> Client[Initialize OpenAI Client<br/>base_url / api_key]
+    Client --> Tools[Register tools list<br/>OpenAI Function Calling Schema]
+    Tools --> MainLoop[Main Conversation Loop while True]
+
+    %% User Input
+    MainLoop --> UserInput[input: receive user message]
+    UserInput --> AppendMsg[messages.append user message]
+    AppendMsg --> InnerLoop[Inner loop: handle tool calls]
+
+    %% LLM Call
+    InnerLoop --> LLMCall[Call LLM<br/>client.chat.completions.create<br/>stream=True]
+    LLMCall --> StreamParse[Parse streaming chunks<br/>accumulate reply + collect tool_calls]
+    StreamParse --> HasTool{tool_calls present?}
+
+    %% No tool call -> final answer
+    HasTool -->|No| FinalReply[Output final answer]
+    FinalReply --> MainLoop
+
+    %% Tool calls -> execute
+    HasTool -->|Yes| AppendAssistant[messages.append assistant message<br/>with tool_calls]
+    AppendAssistant --> RunTool[run_tool dispatcher<br/>parse JSON arguments]
+
+    %% Tool dispatch
+    RunTool --> Dispatcher{Dispatch by tool name}
+
+    %% Tool implementations
+    Dispatcher --> T1[getDate<br/>call system date command]
+    Dispatcher --> T2[isLeapYear<br/>leap year algorithm]
+    Dispatcher --> T3[getWorkingDirectory<br/>os.getcwd]
+    Dispatcher --> T4[listDirectory<br/>os.scandir list entries]
+    Dispatcher --> T5[getFileType<br/>ext + MIME + text/binary detection]
+    Dispatcher --> T6[readTextFile<br/>encoding-aware text read]
+    Dispatcher --> T7[createFile<br/>create file with initial content]
+    Dispatcher --> T8[editTextFile<br/>append / replace / overwrite]
+    Dispatcher --> T9[createDirectory<br/>os.makedirs recursive]
+    Dispatcher --> T10[deleteDirectory<br/>shutil.rmtree non-empty]
+    Dispatcher --> T11[deleteFile<br/>os.remove delete file]
+
+    %% Result feedback loop
+    T1 & T2 & T3 & T4 & T5 & T6 & T7 & T8 & T9 & T10 & T11 --> ToolResult[Tool result string]
+    ToolResult --> AppendToolMsg[messages.append tool message]
+    AppendToolMsg --> InnerLoop
+
+    %% Styling
+    classDef entry fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+    classDef llm fill:#fff3e0,stroke:#ef6c00,stroke-width:2px
+    classDef tool fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    class Start,Config,Client,Tools entry
+    class MainLoop,UserInput,AppendMsg,InnerLoop,LLMCall,StreamParse,HasTool,FinalReply,AppendAssistant entry
+    class RunTool,Dispatcher tool
+    class T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11 tool
