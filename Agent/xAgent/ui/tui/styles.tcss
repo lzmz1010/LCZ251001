@@ -1,0 +1,91 @@
+/* xAgent TUI 样式 */
+
+Screen {
+    layout: vertical;
+    background: $surface;
+}
+
+Header {
+    dock: top;
+}
+
+Footer {
+    dock: bottom;
+}
+
+#chat {
+    height: 1fr;
+    padding: 1 2;
+    scrollbar-size-vertical: 1;
+    background: $surface;
+}
+
+.bubble {
+    width: 100%;
+    height: auto;
+    margin-bottom: 1;
+    padding: 0 1;
+}
+
+.bubble-title {
+    text-style: bold;
+    color: $accent;
+    margin: 0;
+    height: auto;
+}
+
+.bubble-body {
+    height: auto;
+}
+
+.bubble Markdown {
+    padding: 0 1;
+}
+
+.bubble-user {
+    background: $panel;
+    border-left: thick $accent;
+}
+
+.bubble-assistant {
+    border-left: thick $success;
+}
+
+.bubble-tool {
+    border-left: thick $warning;
+    background: $boost;
+}
+
+.bubble-error {
+    border-left: thick $error;
+    color: $error;
+}
+
+.bubble-error .bubble-title {
+    color: $error;
+}
+
+#composer {
+    height: auto;
+    padding: 0 2;
+    background: $panel;
+}
+
+#input {
+    width: 1fr;
+    height: 5;
+    border: round $accent-darken-1;
+}
+
+#send {
+    width: 12;
+    height: 3;
+    margin: 1 0 0 1;
+}
+
+#status {
+    height: 1;
+    padding: 0 2;
+    background: $boost;
+    color: $text-muted;
+}
