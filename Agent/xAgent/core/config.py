@@ -69,6 +69,13 @@ class SearchConfig:
 
 
 @dataclass(frozen=True)
+class SkillsConfig:
+    """技能目录配置。"""
+
+    dirs: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
 class AgentConfig:
     """Agent 运行参数。"""
 
@@ -83,6 +90,7 @@ class AppConfig:
     llm: LLMConfig = field(default_factory=LLMConfig)
     search: SearchConfig = field(default_factory=SearchConfig)
     agent: AgentConfig = field(default_factory=AgentConfig)
+    skills: SkillsConfig = field(default_factory=SkillsConfig)
     source_path: Path | None = None
 
     def with_overrides(self, **kwargs: Any) -> "AppConfig":
@@ -102,6 +110,11 @@ class AppConfig:
             for key, value in kwargs.items()
             if key.startswith("agent_") and value is not None
         }
+        skills_overrides = {
+            key[7:]: value
+            for key, value in kwargs.items()
+            if key.startswith("skills_") and value is not None
+        }
         llm = replace(self.llm, **llm_overrides) if llm_overrides else self.llm
         search = (
             replace(self.search, **search_overrides)
@@ -109,8 +122,17 @@ class AppConfig:
             else self.search
         )
         agent = replace(self.agent, **agent_overrides) if agent_overrides else self.agent
+        skills = (
+            replace(self.skills, **skills_overrides)
+            if skills_overrides
+            else self.skills
+        )
         return AppConfig(
-            llm=llm, search=search, agent=agent, source_path=self.source_path
+            llm=llm,
+            search=search,
+            agent=agent,
+            skills=skills,
+            source_path=self.source_path,
         )
 
 
@@ -153,6 +175,16 @@ def _to_int(value: str | None, name: str) -> int | None:
         raise ConfigError(f"配置项 {name} 不是合法整数: {value}") from exc
 
 
+def _split_dirs(value: str | None) -> tuple[str, ...]:
+    """把多目录配置拆成元组，支持换行或分号分隔。"""
+    if value is None or not value.strip():
+        return ()
+    normalized = value.replace("\r", "\n").replace(";", "\n")
+    return tuple(
+        part.strip() for part in normalized.split("\n") if part.strip()
+    )
+
+
 def load_config(path: str | os.PathLike[str] | None = None) -> AppConfig:
     """读取配置文件并与环境变量合并，返回不可变的配置对象。"""
     config_path = Path(path) if path else find_default_config()
@@ -165,6 +197,7 @@ def load_config(path: str | os.PathLike[str] | None = None) -> AppConfig:
     llm_section = parser["llm"] if parser.has_section("llm") else {}
     search_section = parser["search"] if parser.has_section("search") else {}
     agent_section = parser["agent"] if parser.has_section("agent") else {}
+    skills_section = parser["skills"] if parser.has_section("skills") else {}
 
     llm = LLMConfig(
         base_url=os.getenv("XAGENT_LLM_BASE_URL") or llm_section.get("base_url", LLMConfig.base_url),
@@ -189,4 +222,15 @@ def load_config(path: str | os.PathLike[str] | None = None) -> AppConfig:
         max_tool_rounds=_to_int(agent_section.get("max_tool_rounds"), "agent.max_tool_rounds")
         or AgentConfig.max_tool_rounds,
     )
-    return AppConfig(llm=llm, search=search, agent=agent, source_path=config_path)
+    skills = SkillsConfig(
+        dirs=_split_dirs(
+            os.getenv("XAGENT_SKILLS_DIRS") or skills_section.get("dirs", "")
+        )
+    )
+    return AppConfig(
+        llm=llm,
+        search=search,
+        agent=agent,
+        skills=skills,
+        source_path=config_path,
+    )

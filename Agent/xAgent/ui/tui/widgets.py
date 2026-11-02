@@ -6,8 +6,6 @@
 
 from __future__ import annotations
 
-import json
-
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import Button, Label, Markdown, Static, TextArea
@@ -46,43 +44,66 @@ class MessageBubble(Vertical):
             self._body.update(self._text)
 
 
-class ToolCallBubble(Vertical):
-    """模型请求调用工具时的提示气泡。"""
+class _CompactBubble(Vertical):
+    """工具类气泡的紧凑基类：默认折叠成一行小字，点击展开/收起。"""
 
-    def __init__(self, name: str, arguments: str = "") -> None:
-        super().__init__(classes="bubble bubble-tool")
-        self._name = name
-        self._arguments = arguments
+    MAX_SUMMARY = 36
 
-    def compose(self) -> ComposeResult:
-        yield Label(f"调用工具：{self._name}", classes="bubble-title")
-        yield Static(self._format_arguments(), classes="bubble-body")
-
-    def _format_arguments(self) -> str:
-        raw = (self._arguments or "").strip()
-        if not raw:
-            return "（无参数）"
-        try:
-            data = json.loads(raw)
-        except json.JSONDecodeError:
-            return raw
-        return json.dumps(data, ensure_ascii=False, indent=2)
-
-
-class ToolResultBubble(Vertical):
-    """工具执行结果气泡。"""
-
-    def __init__(self, name: str, content: str = "", is_error: bool = False) -> None:
-        classes = "bubble bubble-tool bubble-error" if is_error else "bubble bubble-tool"
+    def __init__(self, name: str, content: str, is_error: bool, prefix: str) -> None:
+        classes = "bubble bubble-tool compact"
+        if is_error:
+            classes += " bubble-error"
         super().__init__(classes=classes)
         self._name = name
         self._content = content
         self._is_error = is_error
+        self._prefix = prefix
+        self._expanded = True
+        self._detail: Static | None = None
+
+    @property
+    def caption(self) -> str:
+        """一行摘要。"""
+        head = self._one_line(self._content)
+        head = head or "（空）"
+        return f"{self._prefix} {self._name}  {head}"
+
+    @staticmethod
+    def _one_line(text: str) -> str:
+        for line in text.splitlines():
+            line = line.strip()
+            if line:
+                return line if len(line) <= _CompactBubble.MAX_SUMMARY else line[: _CompactBubble.MAX_SUMMARY] + "…"
+        return ""
 
     def compose(self) -> ComposeResult:
-        title = "工具出错" if self._is_error else "工具结果"
-        yield Label(f"{title}：{self._name}", classes="bubble-title")
-        yield Static(self._content, classes="bubble-body")
+        yield Static(self.caption, classes="compact-summary")
+        if not self._is_error:
+            self._detail = Static(self._content, classes="compact-detail")
+            self._detail.display = True
+            yield self._detail
+
+    async def on_click(self) -> None:
+        """点击未出错的工具结果气泡时，展开/收起详细内容。"""
+        if self._detail is None:
+            return
+        self._expanded = not self._expanded
+        self._detail.display = self._expanded
+        self.refresh()
+
+
+class ToolCallBubble(_CompactBubble):
+    """模型请求调用工具时的提示气泡。"""
+
+    def __init__(self, name: str, arguments: str = "") -> None:
+        super().__init__(name, arguments, False, "调用")
+
+
+class ToolResultBubble(_CompactBubble):
+    """工具执行结果气泡。"""
+
+    def __init__(self, name: str, content: str = "", is_error: bool = False) -> None:
+        super().__init__(name, content, is_error, "出错" if is_error else "结果")
 
 
 class ErrorBubble(Vertical):

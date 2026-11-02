@@ -15,8 +15,15 @@ core 不允许 import 任何 ``ui`` 包，保证业务逻辑可以脱离界面�
 """
 
 from core.agent import Agent
-from core.bootstrap import build_agent, build_registry
-from core.config import AgentConfig, AppConfig, LLMConfig, SearchConfig, load_config
+from core.bootstrap import build_agent, build_registry, build_skill_registry
+from core.config import (
+    AgentConfig,
+    AppConfig,
+    LLMConfig,
+    SearchConfig,
+    SkillsConfig,
+    load_config,
+)
 from core.errors import (
     AgentError,
     ConfigError,
@@ -37,6 +44,7 @@ from core.events import (
 )
 from core.models import Message, ToolCall
 from core.session import Session
+from core.skills import Skill, SkillRegistry
 
 __all__ = [
     "Agent",
@@ -52,6 +60,9 @@ __all__ = [
     "MessageCompleteEvent",
     "SearchConfig",
     "Session",
+    "Skill",
+    "SkillRegistry",
+    "SkillsConfig",
     "StatusEvent",
     "TextDeltaEvent",
     "ToolCall",
@@ -63,5 +74,6 @@ __all__ = [
     "UserMessageEvent",
     "build_agent",
     "build_registry",
+    "build_skill_registry",
     "load_config",
 ]

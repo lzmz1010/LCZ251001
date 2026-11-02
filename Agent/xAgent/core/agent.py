@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from typing import AsyncIterator, Sequence
+from typing import AsyncIterator, Callable, Sequence
 
 from core.events import (
     AgentEvent,
@@ -35,11 +35,13 @@ class Agent:
         tools: ToolRegistry,
         session: Session | None = None,
         max_tool_rounds: int = 8,
+        before_turn: Callable[[], None] | None = None,
     ) -> None:
         self._llm = llm
         self._tools = tools
         self._session = session or Session()
         self._max_tool_rounds = max_tool_rounds
+        self._before_turn = before_turn
 
     @property
     def session(self) -> Session:
@@ -62,6 +64,8 @@ class Agent:
 
     async def stream_turn(self, user_input: str) -> AsyncIterator[AgentEvent]:
         """执行一轮对话，以事件流的形式输出全部中间过程。"""
+        if self._before_turn is not None:
+            self._before_turn()
         user_message = self._session.add_user(user_input)
         yield UserMessageEvent(text=user_message.content)
 

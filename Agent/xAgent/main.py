@@ -26,7 +26,7 @@ from pathlib import Path
 # 允许从任意目录执行 `python /path/to/xAgent/main.py`
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from core.bootstrap import build_agent  # noqa: E402
+from core.bootstrap import build_agent, build_skill_registry  # noqa: E402
 from core.config import load_config  # noqa: E402
 from core.errors import ConfigError  # noqa: E402
 from ui.base import create_frontend, ensure_utf8_io, registry  # noqa: E402
@@ -47,6 +47,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--model", "-m", default=None, help="覆盖配置中的模型名称")
     parser.add_argument("--base-url", default=None, help="覆盖配置中的 base_url")
     parser.add_argument("--api-key", default=None, help="覆盖配置中的 api_key")
+    parser.add_argument(
+        "--skills-dir",
+        action="append",
+        default=None,
+        help="技能目录，可重复指定（覆盖 config.ini 的 [skills] dirs）",
+    )
+    parser.add_argument(
+        "--list-skills", action="store_true", help="列出已装载的技能后退出"
+    )
     parser.add_argument(
         "--list-ui", action="store_true", help="列出所有可用前端后退出"
     )
@@ -75,7 +84,19 @@ def main(argv: list[str] | None = None) -> int:
         llm_model=args.model,
         llm_base_url=args.base_url,
         llm_api_key=args.api_key,
+        skills_dirs=tuple(args.skills_dir) if args.skills_dir else None,
     )
+
+    if args.list_skills:
+        skills = build_skill_registry(config)
+        if not skills:
+            print("未找到任何技能")
+        else:
+            print(f"已装载技能（{len(skills)} 个）:")
+            for skill in skills.all():
+                print(f"  - {skill.name}: {skill.description}")
+                print(f"    路径: {skill.path}")
+        return 0
 
     try:
         frontend = create_frontend(args.ui)

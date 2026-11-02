@@ -22,12 +22,16 @@ from core.tools.builtin.file_tools import (
     RmDirTool,
     RmFileTool,
 )
+from core.skills import SkillRegistry
+from core.tools.builtin.create_skill_tool import CreateSkillTool
 from core.tools.builtin.search_tool import SearchWebTool
+from core.tools.builtin.skill_tool import ListSkillsTool, LoadSkillTool
 from core.tools.registry import ToolRegistry
 
 
 def build_default_registry(
     search_config: SearchConfig | None = None,
+    skills: SkillRegistry | None = None,
 ) -> ToolRegistry:
     """构造默认工具注册表。"""
     search_tool = (
@@ -35,7 +39,7 @@ def build_default_registry(
         if search_config is not None
         else SearchWebTool()
     )
-    return ToolRegistry([
+    tools = [
         GetDateTool(),
         search_tool,
         FetchWebTool(),
@@ -50,7 +54,10 @@ def build_default_registry(
         MkdirTool(),
         RmDirTool(),
         RmFileTool(),
-    ])
+    ]
+    if skills:
+        tools.extend([ListSkillsTool(skills), LoadSkillTool(skills), CreateSkillTool()])
+    return ToolRegistry(tools)
 
 
 __all__ = [
@@ -68,5 +75,8 @@ __all__ = [
     "MkdirTool",
     "RmDirTool",
     "RmFileTool",
+    "ListSkillsTool",
+    "LoadSkillTool",
+    "CreateSkillTool",
     "build_default_registry",
 ]

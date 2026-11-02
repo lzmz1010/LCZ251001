@@ -5,6 +5,8 @@ import sys
 from openai import OpenAI
 
 sys.stdout.reconfigure(encoding="utf-8")
+if sys.stdin and hasattr(sys.stdin, "reconfigure"):
+    sys.stdin.reconfigure(encoding="utf-8", errors="replace")
 
 # 读取 config.ini 中的 LLM 配置
 cfg = configparser.ConfigParser()

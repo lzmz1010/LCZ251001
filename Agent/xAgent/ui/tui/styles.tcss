@@ -56,6 +56,31 @@ Footer {
     background: $boost;
 }
 
+/* 工具类气泡：超级精简，默认折叠，不打扰正文 */
+.bubble.compact {
+    height: auto;
+    min-height: 1;
+    margin-top: 0;
+    margin-bottom: 1;
+    padding: 0 0 0 1;
+    border-left: none;
+    background: $surface;
+    opacity: 0.6;
+}
+
+.bubble.compact .compact-summary {
+    height: 1;
+    overflow: hidden;
+    text-style: dim italic;
+    color: $text-muted;
+}
+
+.bubble.compact .compact-detail {
+    padding: 0 1;
+    color: $text-muted;
+    text-style: dim;
+}
+
 .bubble-error {
     border-left: thick $error;
     color: $error;

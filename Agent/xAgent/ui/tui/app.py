@@ -41,6 +41,7 @@ class XAgentApp(App):
         Binding("ctrl+enter", "send", "发送", priority=True),
         Binding("ctrl+l", "clear_chat", "清空对话", priority=True),
         Binding("ctrl+q", "quit", "退出", priority=True),
+        Binding("tab", "view_skills", "查看技能", priority=True),
     ]
 
     #: 流式渲染的最小间隔（秒），避免每个 token 都触发一次重排
@@ -101,6 +102,15 @@ class XAgentApp(App):
         self._agent.session.clear()
         self._set_status("已清空对话", "●")
 
+    async def action_view_skills(self) -> None:
+        """查看当前已装载的技能（Tab 键）。"""
+        chat = self.query_one("#chat", ChatView)
+        tool = self._agent.tools.get("listSkills")
+        if tool is None:
+            await chat.add_error("未注册技能查看工具 listSkills")
+            return
+        await chat.add_tool_result("查看技能", str(tool.invoke()), is_error=False)
+
     # ---------- 事件渲染 ----------
 
     async def _run_turn(self, text: str) -> None:
@@ -128,6 +138,7 @@ class XAgentApp(App):
         elif isinstance(event, MessageCompleteEvent):
             await self._flush(chat, force=True)
         elif isinstance(event, ToolCallEvent):
+            self._set_status(f"调用工具 {event.name}…")
             await chat.add_tool_call(event.name, event.arguments)
         elif isinstance(event, ToolResultEvent):
             await chat.add_tool_result(event.name, event.content, event.is_error)

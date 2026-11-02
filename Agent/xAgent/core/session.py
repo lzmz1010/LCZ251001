@@ -23,6 +23,13 @@ class Session:
         """当前上下文中的全部消息。"""
         return list(self._messages)
 
+    def set_system_prompt(self, content: str) -> Message:
+        """替换系统提示词（用于刷新技能目录等动态内容）。"""
+        message = Message(role="system", content=content)
+        self._messages = [m for m in self._messages if m.role != "system"]
+        self._messages.insert(0, message)
+        return message
+
     def add_user(self, text: str) -> Message:
         """追加一条用户消息。"""
         message = Message(role="user", content=text)
