@@ -12,7 +12,7 @@ from textual.widgets import Button, Label, ListItem, ListView, Markdown, Static,
 
 ROLE_TITLES = {
     "user": "你",
-    "assistant": "AI",
+    "assistant": "助手",
     "tool": "工具",
     "system": "系统",
 }
@@ -186,7 +186,7 @@ class Composer(Horizontal):
             id="input",
             soft_wrap=True,
             show_line_numbers=False,
-            placeholder="输入内容，Ctrl+Enter 发送",
+            placeholder="输入药品、术语或症状问题，Ctrl+Enter 发送",
         )
         yield Button("发送", id="send", variant="primary")
 

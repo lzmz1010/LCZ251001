@@ -1,32 +1,36 @@
-/* xAgent TUI — 全新简洁深色主题
-   用固定配色而非默认主题变量，保证在不同终端下都呈现统一的观感 */
+/* xAgent TUI — 医疗健康 · 浅色清爽主题
+   浅色底 + 白色面板 + 深色正文；青色作为强调，边界清晰、留白充足 */
+
+/* ---------- 配色基准 ----------
+   背景 #f3f6f8 · 面板 #ffffff · 凸起 #eef2f5 · 边框 #d8e1e8
+   正文 #1c252c · 次要 #5f6d78 · 强调青 #0ea794 */
 
 Screen {
     layout: vertical;
-    background: #0b0f14;
+    background: #f3f6f8;
 }
 
-/* ---------- 顶栏：单行、低调 ---------- */
+/* ---------- 顶栏 ---------- */
 Header {
     dock: top;
     height: 1;
-    background: #0b0f14;
-    color: #7c8aa2;
-    border-bottom: solid #1c2531;
+    background: #ffffff;
+    color: #5f6d78;
+    border-bottom: solid #0ea794;
 }
 
 HeaderTitle {
-    color: #58a6ff;
+    color: #0b7d6e;
     text-style: bold;
 }
 
 HeaderClock {
-    color: #7c8aa2;
+    color: #5f6d78;
 }
 
 Footer {
-    background: #0b0f14;
-    color: #7c8aa2;
+    background: #ffffff;
+    color: #5f6d78;
 }
 
 /* ---------- 主体 ---------- */
@@ -40,25 +44,25 @@ Footer {
     height: 1fr;
     padding: 1 3;
     scrollbar-size-vertical: 1;
-    background: #0b0f14;
+    background: #f3f6f8;
 }
 
 /* 右侧 MCP 边栏 */
 #mcp.mcp-sidebar {
-    width: 28;
+    width: 26;
     height: 1fr;
-    background: #0e141c;
-    border-left: solid #1c2531;
+    background: #ffffff;
+    border-left: solid #d8e1e8;
     padding: 1 1;
-    color: #64748b;
+    color: #5f6d78;
 }
 
-/* 上下文占用信息栏（位于输入区上方，与输入区分隔由 #composer 边框承担） */
+/* 上下文占用信息栏（输入区上方） */
 #context {
     height: 1;
     padding: 0 3;
-    background: #111825;
-    color: #8b9aab;
+    background: #f3f6f8;
+    color: #5f6d78;
     text-style: dim;
 }
 
@@ -77,47 +81,47 @@ Footer {
 
 .bubble Markdown {
     padding: 0 1;
-    color: #d6dee7;
+    color: #1c252c;
 }
 
-/* 用户消息：蓝色底 + 圆角边框 */
+/* 用户消息：浅青底 + 青色圆角边框 */
 .bubble-user {
-    background: #16283b;
-    border: round #2a4d6e;
+    background: #e6f7f3;
+    border: round #0ea794;
 }
 
 .bubble-user .bubble-title {
-    color: #6db4ff;
+    color: #0b7d6e;
 }
 
-/* AI 回复：无边框，宽松间距，正文最亮 */
+/* AI 回复：无边框，宽松间距，正文最暗 */
 .bubble-assistant {
     border: none;
     margin-bottom: 2;
 }
 
 .bubble-assistant .bubble-title {
-    color: #74e0a5;
+    color: #1f8a4c;
 }
 
 .bubble-assistant Markdown {
-    color: #e3eaf1;
+    color: #1c252c;
 }
 
-/* 工具调用结果：琥珀色 */
+/* 工具调用结果：浅灰面板 + 琥珀色标题 */
 .bubble-tool {
-    background: #171d27;
-    border: round #3a3f2b;
+    background: #eef2f5;
+    border: round #d8e1e8;
 }
 
 .bubble-tool .bubble-title {
-    color: #e3b564;
+    color: #b9791f;
 }
 
 /* 系统提示：弱化斜体 */
 .bubble-system {
     border: none;
-    color: #8b9aab;
+    color: #5f6d78;
     text-style: italic;
 }
 
@@ -125,7 +129,7 @@ Footer {
     display: none;
 }
 
-/* 工具气泡：默认折叠为一行，几乎不可见，不打扰正文 */
+/* 工具气泡：默认折叠为一行，不打扰正文 */
 .bubble.compact {
     height: auto;
     min-height: 1;
@@ -133,46 +137,47 @@ Footer {
     margin-bottom: 1;
     padding: 0 1 0 1;
     border: none;
-    background: #0b0f14;
-    opacity: 0.5;
+    background: #f3f6f8;
+    opacity: 0.75;
 }
 
 .bubble.compact .compact-summary {
     height: 1;
     overflow: hidden;
     text-style: dim italic;
-    color: #64748b;
+    color: #5f6d78;
 }
 
 .bubble.compact .compact-detail {
     padding: 1 1 1 2;
-    color: #7c8aa2;
+    color: #5f6d78;
     text-style: dim;
 }
 
-/* 错误：红色描边 */
+/* 错误：浅红描边 */
 .bubble-error {
-    border: round #5c2f33;
-    color: #ff8585;
+    border: round #f3a7a3;
+    background: #fdeceb;
+    color: #c0392b;
 }
 
 .bubble-error .bubble-title {
-    color: #ff8585;
+    color: #c0392b;
 }
 
 /* ---------- 弹出面板 ---------- */
 #palette, #session-list {
     height: auto;
     max-height: 14;
-    border: round #2a4d6e;
-    background: #121926;
+    border: round #d8e1e8;
+    background: #ffffff;
     padding: 0 1;
 }
 
 .overlay-title {
     height: 1;
     text-style: bold;
-    color: #58a6ff;
+    color: #0b7d6e;
 }
 
 .overlay-list {
@@ -193,33 +198,36 @@ Footer {
 #composer {
     height: auto;
     padding: 1 3 1 3;
-    background: #11161f;
-    border-top: solid #1c2531;
+    background: #ffffff;
+    border-top: solid #d8e1e8;
 }
 
 #input {
     width: 1fr;
     height: 4;
-    background: #0b0f14;
-    border: round #31506e;
+    background: #ffffff;
+    border: round #c9d4dd;
     padding: 0 1;
-    color: #d6dee7;
+    color: #1c252c;
 }
 
 #input:focus {
-    border: round #58a6ff;
+    border: round #0ea794;
 }
 
 #send {
     width: 10;
     height: 3;
     margin: 1 0 0 1;
+    background: #0ea794;
+    color: #ffffff;
+    text-style: bold;
 }
 
 /* ---------- 状态栏 ---------- */
 #status {
     height: 1;
     padding: 0 3;
-    background: #11161f;
-    color: #7c8aa2;
+    background: #ffffff;
+    color: #5f6d78;
 }

@@ -53,7 +53,7 @@ class XAgentApp(App):
     """xAgent 的 Textual 应用。"""
 
     CSS_PATH = "styles.tcss"
-    TITLE = "xAgent"
+    TITLE = "医药健康 Agent"
 
     BINDINGS = [
         Binding("ctrl+enter", "send", "发送", priority=True),
