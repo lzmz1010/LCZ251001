@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xagent"
+version = "0.1.0"
+description = "core 与 UI 分离的 LLM Agent，支持 TUI / Web / Desktop 多前端"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.30",
+    "textual>=0.60",
+    "trafilatura>=2.0",
+]
+
+[project.scripts]
+xagent = "main:main"
+
+[tool.setuptools]
+packages = [
+    "core",
+    "core.llm",
+    "core.tools",
+    "core.tools.builtin",
+    "ui",
+    "ui.console",
+    "ui.tui",
+]
+py-modules = ["main"]
+
+[tool.setuptools.package-data]
+"ui.tui" = ["*.tcss"]

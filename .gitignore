@@ -1,0 +1,39 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---- Node / build ----
+node_modules/
+dist/
+build/
+
+# ---- Secrets / env ----
+.env
+.env.*
+
+# ---- Runtime data & built binaries ----
+*.db
+*.sqlite
+*.sqlite3
+*.exe
+
+# ---- Agent runtime session/context logs (keep .agents/skills source) ----
+**/.agents/sessions/
+**/.agents/context/
+*.jsonl
+
+# ---- Generated test outputs ----
+假期通知.txt
+关于办公室国庆放假的通知.txt
+
+# ---- OS / editor ----
+Thumbs.db
+.DS_Store
